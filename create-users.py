@@ -1,71 +1,71 @@
 #!/usr/bin/python3
+# INET4031 – Managing Access
+# Author: Ethan Xiong
+# Created: 2025-10-30
+# Last Modified: 2025-10-30
+#
+# Program summary:
+# Reads colon-delimited user records from standard input and (1) creates the
+# account, (2) sets the password, and (3) assigns the account to one or more
+# groups. Lines beginning with "#" are treated as comments and skipped. Lines
+# that do not contain exactly five fields are also skipped to avoid bad input.
 
-# INET4031
-# Your Name
-# Data Created
-# Date Last Modified
-
-#REPLACE THIS COMMENT - identify what each of these imports is for.
-import os
-import re
-import sys
-
-#YOUR CODE SHOULD HAVE NONE OF THE INSTRUCTORS COMMENTS REMAINING WHEN YOU ARE FINISHED
-#PLEASE REPLACE INSTRUCTOR "PROMPTS" WITH COMMENTS OF YOUR OWN
+import os   # Run OS commands like adduser/passwd and group assignment via os.system()
+import re   # Use regular expressions to detect commented lines (e.g., lines starting with '#')
+import sys  # Access sys.stdin so the script can read the input file via shell redirection
 
 def main():
     for line in sys.stdin:
+        # This regular expression looks for a '#' at the very start of the line.
+        # If present, the line is considered a comment so the record should be ignored.
+        match = re.match(r"^\s*#", line)
 
-        #REPLACE THIS COMMENT - this "regular expression" is searching for the presence of a character - what is it and why?
-        #The important part is WHY it is looking for a particular characer - what is that character being used for?
-        match = re.match("^#",line)
-
-        #REPLACE THIS COMMENT - why is the code doing this?
+        # Split the incoming record on ':' because the input file is colon-delimited.
         fields = line.strip().split(':')
 
-        #REPLACE THESE COMMENTS with a single comment describing the logic of the IF 
-        #what would an appropriate comment be for describing what this IF statement is checking for?
-        #what happens if the IF statement evaluates to true?
-        #how does this IF statement rely on what happened in the prior two lines of code? The match and fields lines.
-        #the code clearly shows that the variables match and the length of fields is being checked for being != 5  so why is it doing that?
+        # Skip processing if the line is a comment OR the record is malformed.
+        # We expect exactly five fields: username, password, last, first, groups.
+        # If len(fields) != 5, continuing prevents index errors later in the script.
         if match or len(fields) != 5:
             continue
 
-        #REPLACE THIS COMMENT - what is the purpose of the next three lines. How does it relate to what is stored in the passwd file?
+        # Pull out each field into named variables for clarity and easier use below.
+        # The GECOS field in /etc/passwd typically stores human-friendly info
+        # such as "First Last", so we build that from the input.
         username = fields[0]
         password = fields[1]
-        gecos = "%s %s,,," % (fields[3],fields[2])
+        gecos = "%s %s" % (fields[3], fields[2])   # first + last -> "First Last"
 
-        #REPLACE THIS COMMENT - why is this split being done?
+        # The groups column itself can contain a comma-separated sublist.
+        # Split it so we can iterate and add the user to multiple groups.
         groups = fields[4].split(',')
 
-        #REPLACE THIS COMMENT - what is the point of this print statement?
+        # --- Account creation step ---
+        # Print for visibility (and to support “dry run”); the cmd variable then holds
+        # the exact command we would execute to create the user without an initial password.
         print("==> Creating account for %s..." % (username))
-        #REPLACE THIS COMMENT - what is this line doing?  What will the variable "cmd" contain.
-        cmd = "/usr/sbin/adduser --disabled-password --gecos '%s' %s" % (gecos,username)
+        cmd = "/usr/sbin/adduser --disabled-password --gecos '%s' %s" % (gecos, username)
+        # In dry-run: keep os.system(cmd) commented. In real-run: uncomment it.
+        # print(cmd)
+        os.system(cmd)
 
-        #REMOVE THIS COMMENT AFTER YOU UNDERSTAND WHAT TO DO - these statements are currently "commented out" as talked about in class
-        #The first time you run the code...what should you do here?  If uncommented - what will the os.system(cmd) statemetn attempt to do?
-        #print cmd
-        #os.system(cmd)
-
-        #REPLACE THIS COMMENT - what is the point of this print statement?
+        # --- Password set step ---
+        # Print a status line, then build the command that sets the password.
+        # The echo pipeline feeds the password twice to passwd to satisfy confirmation.
         print("==> Setting the password for %s..." % (username))
-        #REPLACE THIS COMMENT - what is this line doing?  What will the variable "cmd" contain. You'll need to lookup what these linux commands do.
-        cmd = "/bin/echo -ne '%s\n%s' | /usr/bin/sudo /usr/bin/passwd %s" % (password,password,username)
+        cmd = "/bin/echo -ne '%s\n%s\n' | /usr/bin/sudo /usr/bin/passwd %s" % (password, password, username)
+        # print(cmd)
+        os.system(cmd)
 
-        #REMOVE THIS COMMENT AFTER YOU UNDERSTAND WHAT TO DO - these statements are currently "commented out" as talked about in class
-        #The first time you run the code...what should you do here?  If uncommented - what will the os.system(cmd) statemetn attempt to do?
-        #print cmd
-        #os.system(cmd)
-
+        # --- Group membership step ---
+        # Iterate each target group. A lone '-' means “no groups” so we skip it.
         for group in groups:
-            #REPLACE THIS COMMENT with one that answers "What is this IF statement looking for and why? If group !='-' what happens?"
+            # If group is '-', nothing to do for this user.
             if group != '-':
-                print("==> Assigning %s to the %s group..." % (username,group))
-                cmd = "/usr/sbin/adduser %s %s" % (username,group)
-                #print cmd
-                #os.system(cmd)
+                print("==> Assigning %s to the %s group..." % (username, group))
+                cmd = "/usr/sbin/adduser %s %s" % (username, group)
+                # print(cmd)
+                os.system(cmd)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
