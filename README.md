@@ -1,23 +1,19 @@
 # INET4031 Add Users Script and User List
 
 ## Program Description
+The **Create Users Script** is an automated Python program designed to simplify the process of adding multiple users to a Linux system. Instead of manually typing long commands to create each user, set passwords, and assign groups, this program does all of that automatically based on data from a formatted input file.  
 
-Detailed and helpful description paragraph goes here.  Describe how the program will help the user.  It should talk about how the program is an automated way for the user to accomplish the manual task of adding users. Also include a description of what commands a user would normally use to add a user and then describe how those ***SAME COMMANDS*** are used by the script and automated.
+Normally, a system administrator would have to run commands such as `adduser`, `passwd`, and `adduser <user> <group>` repeatedly for every new account. This script automates those same commands, saving time and minimizing human error. It reads a list of user details, processes each valid line, and executes the appropriate commands to create the users, set their passwords, and place them into their assigned groups.
+
+---
 
 ## Program User Operation
+After reading this section, the user should understand how to prepare the input file, run the script, and verify the output. The script should be executed in two stages: a **dry run** for testing, and a **live run** for actual system updates.
 
-This section should describe the overall operation of the program. After reading this section user should know what to do to make it work.  Let the comments in your code explain "how" it work.
+When running, the program reads the input file line by line. It skips lines that begin with a `#` (comments) or lines that don’t contain enough data fields. For valid entries, it creates the account, sets the password, and assigns the user to one or more groups. The script also prints progress messages to the terminal so the user can easily follow what actions are being taken.
 
-This section should start off with a paragraph description, then have subsections for the following:
+---
 
 ### Input File Format
-Explain the format of the input file.  What is the purpose of each field in a line.
-Explain what the user needs to do if they want to skip a line in the input file.
-Expalin what the user needs to do if they do not want a new user added to any groups.
-
-### Command Excuction
-Explain how the user runs the code.  Remind the user they may need to set the Python file to be executable.
-./create-users.py < createusers.input
-
-### "Dry Run"
-Explain what happens if the user elects to do a "dry run."  
+The input file must contain one user per line, with each field separated by colons (`:`).  
+Each line includes the following five fields in order:
